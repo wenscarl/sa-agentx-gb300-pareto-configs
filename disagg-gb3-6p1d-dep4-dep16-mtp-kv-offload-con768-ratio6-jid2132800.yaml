@@ -1,0 +1,238 @@
+name: 0610-dsv4-pro-gb300-sgl-mtp-hicache2p5-2p1d-c1024-mid-dep4dep8
+infra:
+  nats_max_payload_mb: 8
+model:
+  path: "${MODEL_PATH}"
+  container: "${SGLANG_CONTAINER_SQSH}"
+  precision: fp4
+resources:
+  gpu_type: gb300
+  gpus_per_node: 4
+  prefill_nodes: 6
+  decode_nodes: 4
+  prefill_workers: 6
+  decode_workers: 1
+slurm:
+  account: "${SLURM_ACCOUNT}"
+  partition: "${SLURM_PARTITION}"
+  time_limit: '01:40:00'
+srun_options:
+  container-remap-root: ''
+extra_mount:
+- "${HOST_LUSTRE_PATH}:/lustre"
+- "${AIPERF_CHECKOUT}:/aiperf"
+setup_script: aa-dynamo-sglang-overlay.sh
+dynamo:
+  install: false
+frontend:
+  type: dynamo
+  enable_multiple_frontends: false
+  args:
+    router-mode: kv
+    router-reset-states: true
+    kv-cache-block-size: 256
+    router-queue-threshold: 1000000
+  env:
+    DYN_SKIP_SGLANG_LOG_FORMATTING: '1'
+    DYN_LOG: info,dynamo_runtime::pipeline::network::ingress::push_handler=warn
+health_check:
+  max_attempts: 180
+  interval_seconds: 20
+environment:
+  REFERENCE_ROOT: "${REFERENCE_ROOT}"
+  USER_PROJECT_ROOT: "${USER_PROJECT_ROOT}"
+  USER_HOME_ROOT: "${USER_HOME_ROOT}"
+  DYNAMO_SRC: "${DYNAMO_SRC}"
+  DYNAMO_DIST: "${DYNAMO_DIST}"
+  DYNAMO_INFRA_BIN_DIR: "${DYNAMO_INFRA_BIN_DIR}"
+  SGLANG_SRC: "${SGLANG_SRC}"
+  PYTHONPATH: "${DYNAMO_PYTHONPATH}"
+  UV_BIN: uv
+  UV_CACHE_DIR: "/tmp/srtctl-uv-cache"
+  HF_HOME: "/configs/hf-cache"
+  HF_HUB_CACHE: "/configs/hf-cache/hub"
+identity:
+  model:
+    repo: deepseek-ai/DeepSeek-V4-Pro
+  container:
+    image: "${SGLANG_CONTAINER_SQSH}"
+backend:
+  type: sglang
+  prefill_environment:
+    PYTHONUNBUFFERED: '1'
+    SGLANG_DISABLE_TP_MEMORY_INBALANCE_CHECK: '1'
+    SGLANG_DG_CACHE_DIR: "/configs/deepgemm_cache"
+    SGLANG_JIT_DEEPGEMM_PRECOMPILE: '0'
+    SGLANG_JIT_DEEPGEMM_FAST_WARMUP: '1'
+    SGLANG_ENABLE_THINKING: '1'
+    SGLANG_REASONING_EFFORT: max
+    SGLANG_OPT_SWA_SPLIT_LEAF_ON_INSERT: '1'
+    SGLANG_OPT_SWA_EVICT_DROP_PAGE_MARGIN: '1'
+    SGLANG_HICACHE_DEBUG_LOG: '1'
+    SGLANG_HICACHE_DEBUG_SAMPLE_RATE: '16384'
+    SGLANG_OPT_USE_CUSTOM_ALL_REDUCE_V2: '1'
+    SGLANG_OPT_USE_DEEPGEMM_MEGA_MOE: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_USE_FP4_ACTS: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_USE_MXF4_KIND: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_NUM_MAX_TOKENS_PER_RANK: '9216'
+    SGLANG_OPT_USE_ONLINE_COMPRESS: '1'
+    NCCL_MNNVL_ENABLE: '1'
+    NCCL_CUMEM_ENABLE: '1'
+    SGLANG_MOONCAKE_CUSTOM_MEM_POOL: 'True'
+    MC_FORCE_MNNVL: '1'
+    NCCL_TIMEOUT: '100000'
+    NCCL_MNNVL_UUID_QUERY_TIMEOUT: '100000'
+    SGLANG_OPT_SWA_RELEASE_LEAF_LOCK_AFTER_WINDOW: '1'
+    DYN_SKIP_SGLANG_LOG_FORMATTING: '1'
+    DYN_LOG: info,dynamo_runtime::pipeline::network::ingress::push_handler=warn
+    SGLANG_LOG_FORWARD_ITERS: '1'
+    SGLANG_LOG_MS: '1'
+    SGLANG_REQUEST_STATE_WAIT_TIMEOUT: '60'
+    SGLANG_ENABLE_UNIFIED_RADIX_TREE: '1'
+  decode_environment:
+    PYTHONUNBUFFERED: '1'
+    SGLANG_DISABLE_TP_MEMORY_INBALANCE_CHECK: '1'
+    SGLANG_DG_CACHE_DIR: "/configs/deepgemm_cache"
+    SGLANG_JIT_DEEPGEMM_PRECOMPILE: '0'
+    SGLANG_JIT_DEEPGEMM_FAST_WARMUP: '1'
+    SGLANG_ENABLE_THINKING: '1'
+    SGLANG_REASONING_EFFORT: max
+    SGLANG_OPT_SWA_SPLIT_LEAF_ON_INSERT: '1'
+    SGLANG_OPT_SWA_EVICT_DROP_PAGE_MARGIN: '1'
+    SGLANG_HICACHE_DEBUG_LOG: '1'
+    SGLANG_HICACHE_DEBUG_SAMPLE_RATE: '16384'
+    SGLANG_OPT_USE_DEEPGEMM_MEGA_MOE: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_USE_FP4_ACTS: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_USE_MXF4_KIND: '1'
+    SGLANG_OPT_DEEPGEMM_MEGA_MOE_NUM_MAX_TOKENS_PER_RANK: '4096'
+    SGLANG_OPT_USE_ONLINE_COMPRESS: '0'
+    NCCL_MNNVL_ENABLE: '1'
+    NCCL_CUMEM_ENABLE: '1'
+    SGLANG_MOONCAKE_CUSTOM_MEM_POOL: 'True'
+    MC_FORCE_MNNVL: '1'
+    NCCL_TIMEOUT: '100000'
+    NCCL_MNNVL_UUID_QUERY_TIMEOUT: '100000'
+    SGLANG_OPT_SWA_RELEASE_LEAF_LOCK_AFTER_WINDOW: '1'
+    SGLANG_CLIP_MAX_NEW_TOKENS_ESTIMATION: '8'
+    DYN_SKIP_SGLANG_LOG_FORMATTING: '1'
+    DYN_LOG: info,dynamo_runtime::pipeline::network::ingress::push_handler=warn
+    SGLANG_LOG_FORWARD_ITERS: '1'
+    SGLANG_LOG_MS: '1'
+    SGLANG_REQUEST_STATE_WAIT_TIMEOUT: '60'
+    SGLANG_ENABLE_UNIFIED_RADIX_TREE: '1'
+  sglang_config:
+    prefill:
+      host: 0.0.0.0
+      served-model-name: deepseek-ai/DeepSeek-V4-Pro
+      model-path: "/model/"
+      trust-remote-code: true
+      watchdog-timeout: 86400
+      stream-interval: 60
+      tp-size: 4
+      dp-size: 4
+      ep-size: 4
+      enable-dp-attention: true
+      enable-dp-lm-head: true
+      moe-dense-tp-size: 1
+      moe-a2a-backend: megamoe
+      disaggregation-transfer-backend: mooncake
+      disaggregation-mode: prefill
+      load-balance-method: total_tokens
+      mem-fraction-static: 0.9
+      swa-full-tokens-ratio: 0.02
+      max-running-requests: 1024
+      cuda-graph-max-bs: 1024
+      chunked-prefill-size: 32768
+      disable-flashinfer-autotune: true
+      model-loader-extra-config: '{"enable_multithread_load":true,"num_threads":8}'
+      kv-events-config: '{"publisher":"zmq","topic":"kv-events","endpoint":"tcp://*:5557"}'
+      enable-hierarchical-cache: true
+      hicache-write-policy: write_back
+      hicache-ratio: 6
+      hicache-io-backend: direct
+    decode:
+      host: 0.0.0.0
+      served-model-name: deepseek-ai/DeepSeek-V4-Pro
+      model-path: "/model/"
+      trust-remote-code: true
+      watchdog-timeout: 86400
+      stream-interval: 60
+      tp-size: 16
+      dp-size: 16
+      ep-size: 16
+      enable-dp-attention: true
+      enable-dp-lm-head: true
+      moe-dense-tp-size: 1
+      moe-a2a-backend: megamoe
+      disaggregation-transfer-backend: mooncake
+      disaggregation-mode: decode
+      mem-fraction-static: 0.9
+      swa-full-tokens-ratio: 0.15
+      max-running-requests: 3072
+      cuda-graph-max-bs: 1024
+      disable-flashinfer-autotune: true
+      model-loader-extra-config: '{"enable_multithread_load":true,"num_threads":8}'
+      kv-events-config: '{"publisher":"zmq","topic":"kv-events","endpoint":"tcp://*:5567"}'
+      speculative-algorithm: EAGLE
+      speculative-num-steps: 3
+      speculative-eagle-topk: 1
+      speculative-num-draft-tokens: 4
+benchmark:
+  type: custom
+  env:
+    CONCURRENCY: '768'
+    UV_BIN: uv
+    UV_CACHE_DIR: "/tmp"
+    UV_PROJECT_ENVIRONMENT: "/tmp/aiperf-agentx-venv"
+    UV_TOOL_DIR: "/tmp"
+    HF_HOME: "/configs/hf-cache"
+    HF_HUB_CACHE: "/configs/hf-cache/hub"
+    XDG_CACHE_HOME: "/tmp/cache"
+    AIPERF_SERVICE_PROFILE_CONFIGURE_TIMEOUT: '900'
+    AIPERF_DATASET_CONFIGURATION_TIMEOUT: '900'
+    AIPERF_DYNAMO_SESSION_DEBUG_SAMPLES_WARMUP: '1'
+    AIPERF_DYNAMO_SESSION_DEBUG_SAMPLES_PROFILING: '16'
+    AIPERF_DYNAMO_SESSION_DEBUG_CHARS: '180'
+  command: |
+    set -euo pipefail
+    mkdir -p "${HF_HOME}" "${HF_HUB_CACHE}" "${XDG_CACHE_HOME}"
+    #WORKDIR=/tmp/aiperf
+    #rm -rf "$WORKDIR"
+    #git clone "$REF" "$WORKDIR"
+    #cd "$WORKDIR"
+    #"${UV_BIN}" run aiperf profile \
+    #--scenario 'inferencex-agentx-mvp' \
+    #--endpoint '/v1/chat/completions' --endpoint-type 'chat' --streaming --model deepseek-ai/DeepSeek-V4-Pro \
+    #--concurrency "${CONCURRENCY}" --benchmark-duration 1800 --random-seed 42 --failed-request-threshold 0.1 \
+    #--trajectory-start-min-ratio 0.25 --trajectory-start-max-ratio 0.75 --use-server-token-count \
+    #--tokenizer-trust-remote-code --num-dataset-entries 472 --slice-duration 1.0 --output-artifact-dir /logs/aiperf \
+    #--public-dataset semianalysis_cc_traces_weka_with_subagents_060826
+    cd /aiperf
+    "${UV_BIN}" run aiperf profile \
+      --scenario inferencex-agentx-mvp \
+      --url localhost:8000 \
+      --endpoint /v1/chat/completions \
+      --model deepseek-ai/DeepSeek-V4-Pro \
+      --tokenizer /model \
+      --tokenizer-trust-remote-code \
+      --endpoint-type chat \
+      --streaming \
+      --public-dataset semianalysis_cc_traces_weka_with_subagents_060826 \
+      --benchmark-duration 1800 \
+      --trajectory-start-min-ratio 0.25 \
+      --trajectory-start-max-ratio 0.75 \
+      --concurrency "${CONCURRENCY}" \
+      --prefill-concurrency 512 \
+      --prefill-concurrency-ramp-duration 300 \
+      --use-server-token-count \
+      --use-dynamo-conv-aware-routing \
+      --dynamo-session-timeout-seconds 3600 \
+      --ui simple \
+      --unsafe-override \
+      --random-seed 42 \
+      --failed-request-threshold 0.1 \
+      --num-dataset-entries 472 \
+      --slice-duration 1.0 \
+      --output-artifact-dir /logs/aiperf \
+      --server-metrics-formats json
+    rm -f /logs/aiperf/inputs.json
