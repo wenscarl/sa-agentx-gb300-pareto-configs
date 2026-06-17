@@ -16,7 +16,7 @@ aggregate throughput normalized per GPU.
 
 ## Pareto Curve
 
-![Pareto curve: TPS/User vs total TPS/GPU](assets/pareto_curve_rows_4_18.svg)
+![Pareto curve: TPS/User vs total TPS/GPU](assets/pareto_curve_rows_4_18.svg.png)
 
 | JID | Topology | GPUs | Conc | hicache | TPS/User | total TPS/GPU | Cache hit | P90 TTFT (s) | P50 latency (ms) | P90 latency (ms) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
