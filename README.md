@@ -14,6 +14,10 @@ Metrics are from the `Agentx SGLang Best Known Perf` tab of the SA-AgentX GB300
 tracking sheet, rows 4-18. `TPS/User` is `1 / median TPOT`; `total TPS/GPU` is
 aggregate throughput normalized per GPU.
 
+## Pareto Curve
+
+![Pareto curve: TPS/User vs total TPS/GPU](assets/pareto_curve_rows_4_18.svg)
+
 | JID | Topology | GPUs | Conc | hicache | TPS/User | total TPS/GPU | Cache hit | P90 TTFT (s) | P50 latency (ms) | P90 latency (ms) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | jid2098561 | 1P x DEP4 + 1D x DEP16 | 20 | 256 | 4 | 83.47 | 8,371.10 | 74.10% | 153.50 | 84,279.05 | 114,559.22 |
